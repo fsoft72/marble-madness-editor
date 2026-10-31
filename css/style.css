@@ -145,6 +145,21 @@ body, html {
   background: rgba(236, 204, 104, 0.25);
 }
 
+.btn-lang {
+  background: rgba(46, 213, 115, 0.14);
+  border-color: rgba(46, 213, 115, 0.45);
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  min-width: 58px;
+  justify-content: center;
+}
+
+.btn-lang:hover {
+  background: rgba(46, 213, 115, 0.25);
+  border-color: var(--accent-cyan);
+}
+
 .divider-v {
   width: 1px;
   height: 24px;

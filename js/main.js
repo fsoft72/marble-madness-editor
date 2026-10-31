@@ -4,9 +4,249 @@ import { BLOCK_SIZE, buildBlockMeshGroup, getBlockSurfaceY, createReflectiveMarb
 import { createLevel01Preset } from './level01Preset.js';
 
 // ============================================================================
+// LOCALIZATION (EN / IT — Default: English)
+// ============================================================================
+const I18N = {
+  en: {
+    page_title: 'Marble Madness 3D Level Editor (3×3 Blocks)',
+    brand_title: 'MARBLE MADNESS 3D EDITOR',
+    brand_badge: '3×3 BLOCK GRID',
+
+    tool_select: '🎯 Select',
+    tool_select_title: 'Select and edit block (Key 1)',
+    tool_paint_block: '🧱 Block Brush',
+    tool_paint_block_title: 'Paint 3×3 blocks (Key 2)',
+    tool_paint_element: '🚧 Place Element',
+    tool_paint_element_title: 'Place 3D Elements like tubes, cones, flags (Key 3)',
+    tool_paint_decal: '🎨 Place Decal',
+    tool_paint_decal_title: 'Apply Decals like arrows, GOAL, numbers 4-5-6 (Key 4)',
+    tool_erase: '🧹 Eraser',
+    tool_erase_title: 'Remove block / Create void (Key 5)',
+    tool_pick: '💧 Copy',
+    tool_pick_title: 'Eyedropper: copy properties from block',
+
+    cam_ortho: '📐 Isometric',
+    cam_ortho_title: 'Arcade-faithful Isometric Orthographic Camera',
+    cam_persp: '🎥 Perspective',
+    cam_persp_title: '3D Perspective Camera',
+    cam_reset: '🎯 Arcade View',
+    cam_reset_title: 'Align view to original Arcade framing',
+    toggle_grid: '# Grid',
+    toggle_grid_title: 'Show/Hide base grid',
+    undo_title: 'Undo (Ctrl+Z)',
+    redo_title: 'Redo',
+
+    simulate_start: '▶ Test Marble',
+    simulate_stop: '⏹ Stop Marble',
+    simulate_title: 'Launch the red marble along the slopes (Arrow keys to steer)',
+
+    load_preset: '🗺️ Level 1',
+    load_preset_title: 'Reload full Level 01 map from reference image',
+    clear_map: '🗑️ Clear',
+    clear_map_title: 'Clear the map',
+    export_json: '💾 JSON',
+    export_json_title: 'Export / Import 3D Level (JSON)',
+    lang_toggle_btn: '🌐 EN',
+    lang_toggle_title: 'Switch language to Italiano (IT)',
+
+    sec_shapes_title: '1. 3×3 Block Profile',
+    sec_shapes_badge: 'Pillar ∞',
+    sec_elements_title: '2. 3D Elements on Block',
+    sec_decals_title: '3. Surface Decals',
+    sec_click_rotate: 'Click = Rotate',
+
+    coords_prefix: '3×3 Block',
+    coords_empty: 'Empty',
+    slope_short: 'S',
+
+    hud_mouse_html:
+      '<kbd>L-Click</kbd> Select / Apply &nbsp;•&nbsp; <kbd>R-Click / Drag</kbd> Rotate / 3D Pan &nbsp;•&nbsp; <kbd>Wheel</kbd> Zoom',
+    hud_keys_html:
+      '<kbd>W</kbd>/<kbd>S</kbd> Block Height &nbsp;•&nbsp; <kbd>A</kbd>/<kbd>D</kbd> Slope &nbsp;•&nbsp; <kbd>Q</kbd>/<kbd>E</kbd> Tilt &nbsp;•&nbsp; <kbd>R</kbd> Rotate 90° &nbsp;•&nbsp; <kbd>Del</kbd> Delete',
+
+    inspector_no_block: 'No Block',
+    inspector_block: 'Block',
+    inspector_empty_suffix: '(Empty)',
+    inspector_tile_badge: '3×3 Tile',
+
+    lbl_elevation: 'Base Height (Y)',
+    lbl_slope: 'Slope (Primary)',
+    lbl_tilt: 'Lateral Tilt',
+    lbl_block_rot: 'Block & Slope Rotation (Key R)',
+    lbl_corners: '3×3 Corner Vertices [NW, NE, SW, SE]',
+    btn_diag: 'Diag ⟍/⟋',
+    btn_diag_title: 'Flip fold diagonal',
+
+    sec_orient_title: 'Element & Decal Orientation',
+    lbl_elem_rot: '3D Element Rotation (Tubes / Cones / Flags)',
+    lbl_decal_rot: 'Surface Decal Rotation (Arrows / Numbers)',
+    lbl_marble_color: 'Marble Sphere Color (Semi-Transparent)',
+
+    sec_subtiles_title: '3×3 Sub-Blocks (Offset ΔY)',
+    sec_subtiles_badge: 'Steps',
+
+    sec_ref_title: 'Original Image Comparison',
+    lbl_ref_opacity: 'Overlay Opacity (level01.png)',
+
+    modal_json_title: 'Export / Import 3D Level (JSON)',
+    btn_close_modal: 'Close',
+    btn_apply_json: 'Load JSON into Editor',
+    err_invalid_json: 'Invalid JSON: ',
+
+    // Palette items
+    shape_flat: 'Flat / Ramp',
+    shape_chute_leg_x: 'White Ramp R',
+    shape_chute_leg_z: 'Shadow Chute L',
+    shape_fold_right: 'Sharp Turn R',
+    shape_fold_left: 'Dark Turn L',
+    shape_wing_left: '45° Wing Tip L',
+    shape_chute_funnel: 'Chute Funnel',
+    shape_pit_stepped: 'Stepped Pit',
+    shape_goal_bevel: 'GOAL Tip',
+    shape_pit: 'Pit (Rim Wall)',
+    shape_subtiles_custom: '3×3 Sub-Grid',
+
+    elem_none: 'No Element',
+    elem_tube_straight: 'Straight Tube',
+    elem_tube_corner: 'L-Corner Tube',
+    elem_tube_u: 'U-Shape Tube',
+    elem_cone_small: 'Small Pyramid',
+    elem_cone_large: 'Large Pyramid',
+    elem_goal_flags: 'GOAL Flags',
+    elem_marble_start: 'Start Marble',
+
+    decal_none: 'No Decal',
+    decal_arrow_wide_diag: 'Large Arrow',
+    decal_arrow_wide_ortho: 'Straight Arrow',
+    decal_arrow_long_chevrons: '3-Chevron Arrow',
+    decal_arrow_shaft_only: 'Arrow Shaft',
+    decal_pad_456: '4-5-6 Grid',
+    decal_goal_banner: 'GOAL Banner'
+  },
+
+  it: {
+    page_title: 'Marble Madness 3D Level Editor (Blocchi 3×3)',
+    brand_title: 'MARBLE MADNESS 3D EDITOR',
+    brand_badge: 'GRIGLIA BLOCCHI 3×3',
+
+    tool_select: '🎯 Seleziona',
+    tool_select_title: 'Seleziona e modifica blocco (Tasto 1)',
+    tool_paint_block: '🧱 Pennello Blocco',
+    tool_paint_block_title: 'Disegna blocchi 3×3 (Tasto 2)',
+    tool_paint_element: '🚧 Posiziona Elemento',
+    tool_paint_element_title: 'Posiziona Elementi 3D come tubi, coni, bandiere (Tasto 3)',
+    tool_paint_decal: '🎨 Posiziona Decal',
+    tool_paint_decal_title: 'Applica Decal come frecce, GOAL, numeri 4-5-6 (Tasto 4)',
+    tool_erase: '🧹 Gomma',
+    tool_erase_title: 'Rimuovi blocco / Crea vuoto (Tasto 5)',
+    tool_pick: '💧 Copia',
+    tool_pick_title: 'Contagocce: copia proprietà dal blocco',
+
+    cam_ortho: '📐 Isometrica',
+    cam_ortho_title: "Telecamera Isometrica Ortografica fedele all'Arcade",
+    cam_persp: '🎥 Prospettiva',
+    cam_persp_title: 'Telecamera Prospettica 3D',
+    cam_reset: '🎯 Inquadratura Arcade',
+    cam_reset_title: "Allinea vista all'inquadratura originale Arcade",
+    toggle_grid: '# Griglia',
+    toggle_grid_title: 'Mostra/Nascondi griglia base',
+    undo_title: 'Annulla (Ctrl+Z)',
+    redo_title: 'Ripeti',
+
+    simulate_start: '▶ Test Biglia',
+    simulate_stop: '⏹ Ferma Biglia',
+    simulate_title: 'Lancia la biglia rossa lungo le pendenze (Frecce per guidare)',
+
+    load_preset: '🗺️ Livello 1',
+    load_preset_title: "Ricarica la mappa completa Level 01 dall'immagine",
+    clear_map: '🗑️ Svuota',
+    clear_map_title: 'Svuota la mappa',
+    export_json: '💾 JSON',
+    export_json_title: 'Esporta / Importa Livello 3D (JSON)',
+    lang_toggle_btn: '🌐 IT',
+    lang_toggle_title: 'Switch language to English (EN)',
+
+    sec_shapes_title: '1. Profilo Blocco 3×3',
+    sec_shapes_badge: 'Pilastro ∞',
+    sec_elements_title: '2. Elementi 3D sul Blocco',
+    sec_decals_title: '3. Decals di Superficie',
+    sec_click_rotate: 'Click = Ruota',
+
+    coords_prefix: 'Blocco 3×3',
+    coords_empty: 'Vuoto',
+    slope_short: 'P',
+
+    hud_mouse_html:
+      '<kbd>Click SX</kbd> Seleziona / Applica &nbsp;•&nbsp; <kbd>Click DX / Trascina</kbd> Ruota / Panoramica 3D &nbsp;•&nbsp; <kbd>Rotella</kbd> Zoom',
+    hud_keys_html:
+      '<kbd>W</kbd>/<kbd>S</kbd> Altezza Blocco &nbsp;•&nbsp; <kbd>A</kbd>/<kbd>D</kbd> Pendenza &nbsp;•&nbsp; <kbd>Q</kbd>/<kbd>E</kbd> Angolazione &nbsp;•&nbsp; <kbd>R</kbd> Ruota 90° &nbsp;•&nbsp; <kbd>Canc</kbd> Elimina',
+
+    inspector_no_block: 'Nessun Blocco',
+    inspector_block: 'Blocco',
+    inspector_empty_suffix: '(Vuoto)',
+    inspector_tile_badge: '3×3 Tile',
+
+    lbl_elevation: 'Altezza Base (Y)',
+    lbl_slope: 'Pendenza (Slope Principale)',
+    lbl_tilt: 'Angolazione Laterale (Tilt)',
+    lbl_block_rot: 'Rotazione Blocco & Pendenza (Tasto R)',
+    lbl_corners: 'Vertici Angoli 3×3 [NW, NE, SW, SE]',
+    btn_diag: 'Diag ⟍/⟋',
+    btn_diag_title: 'Inverti diagonale di piega',
+
+    sec_orient_title: 'Orientamento Elementi & Decal',
+    lbl_elem_rot: 'Rotazione Elemento 3D (Tubi / Coni / Bandiere)',
+    lbl_decal_rot: 'Rotazione Decal Superficie (Frecce / Numeri)',
+    lbl_marble_color: 'Colore Sfera Biglia (Semi-Trasparente)',
+
+    sec_subtiles_title: 'Sub-Blocchi 3×3 (Offset ΔY)',
+    sec_subtiles_badge: 'Gradoni',
+
+    sec_ref_title: 'Confronto Immagine Originale',
+    lbl_ref_opacity: 'Opacità Sovrapposizione (level01.png)',
+
+    modal_json_title: 'Esporta / Importa Livello 3D (JSON)',
+    btn_close_modal: 'Chiudi',
+    btn_apply_json: "Carica JSON nell'Editor",
+    err_invalid_json: 'JSON non valido: ',
+
+    // Palette items
+    shape_flat: 'Piano / Rampa',
+    shape_chute_leg_x: 'Rampa Bianca DX',
+    shape_chute_leg_z: 'Canale Ombra SX',
+    shape_fold_right: 'Curva Punta DX',
+    shape_fold_left: 'Curva Scura SX',
+    shape_wing_left: 'Ala Punta 45° SX',
+    shape_chute_funnel: 'Imbocco Scivolo',
+    shape_pit_stepped: 'Gradoni Fossa',
+    shape_goal_bevel: 'Punta GOAL',
+    shape_pit: 'Buca (con Bordo)',
+    shape_subtiles_custom: 'Sub-Griglia 3×3',
+
+    elem_none: 'Nessun Elem.',
+    elem_tube_straight: 'Tubo Dritto',
+    elem_tube_corner: 'Tubo Angolo L',
+    elem_tube_u: 'Tubo a U',
+    elem_cone_small: 'Piramide Piccola',
+    elem_cone_large: 'Piramide Grande',
+    elem_goal_flags: 'Bandiere GOAL',
+    elem_marble_start: 'Biglia Start',
+
+    decal_none: 'Nessuna Decal',
+    decal_arrow_wide_diag: 'Freccia Grande',
+    decal_arrow_wide_ortho: 'Freccia Dritta',
+    decal_arrow_long_chevrons: 'Freccia 3 Punte',
+    decal_arrow_shaft_only: 'Asta Freccia',
+    decal_pad_456: 'Griglia 4-5-6',
+    decal_goal_banner: 'Scritta GOAL'
+  }
+};
+
+// ============================================================================
 // EDITOR STATE
 // ============================================================================
 const state = {
+  lang: 'en', // 'en' (default) | 'it'
   cols: 13,
   rows: 13,
   blocks: {}, // key: "bx,bz" -> block object
@@ -39,6 +279,10 @@ const state = {
   undoStack: [],
   redoStack: []
 };
+
+function t(key) {
+  return I18N[state.lang]?.[key] ?? I18N.en[key] ?? key;
+}
 
 // ============================================================================
 // THREE.JS SCENE SETUP
@@ -449,16 +693,29 @@ function getCellUnderPointer(event) {
   return null;
 }
 
+function updateCoordsBadge() {
+  const badge = document.getElementById('coords-badge');
+  if (!badge) return;
+  const cell = state.hoveredCell;
+  if (cell) {
+    const b = state.blocks[`${cell.bx},${cell.bz}`];
+    const hStr =
+      b && !b.isVoid
+        ? `Y:${b.elevation.toFixed(1)} ${t('slope_short')}:${b.slope.toFixed(1)}`
+        : t('coords_empty');
+    badge.textContent = `${t('coords_prefix')} [${cell.bx}, ${cell.bz}] • ${hStr}`;
+  } else {
+    badge.textContent = `${t('coords_prefix')} [-, -]`;
+  }
+}
+
 renderer.domElement.addEventListener('pointermove', (e) => {
   const cell = getCellUnderPointer(e);
-  const badge = document.getElementById('coords-badge');
 
   if (cell) {
     state.hoveredCell = cell;
     updateCursorPose(hoverCursor, cell.bx, cell.bz);
-    const b = state.blocks[`${cell.bx},${cell.bz}`];
-    const hStr = b && !b.isVoid ? `Y:${b.elevation.toFixed(1)} P:${b.slope.toFixed(1)}` : 'Vuoto';
-    badge.textContent = `Blocco 3×3 [${cell.bx}, ${cell.bz}] • ${hStr}`;
+    updateCoordsBadge();
 
     if (isLeftMouseDown && (state.activeTool === 'paint_block' || state.activeTool === 'erase')) {
       const k = `${cell.bx},${cell.bz}`;
@@ -470,7 +727,7 @@ renderer.domElement.addEventListener('pointermove', (e) => {
   } else {
     state.hoveredCell = null;
     if (hoverCursor) hoverCursor.visible = false;
-    badge.textContent = 'Blocco 3×3 [-, -]';
+    updateCoordsBadge();
   }
 });
 
@@ -497,38 +754,38 @@ window.addEventListener('pointerup', () => {
 // UI PALETTES & INSPECTOR BINDING
 // ============================================================================
 const SHAPE_ITEMS = [
-  { id: 'flat', icon: '⬛', label: 'Piano / Rampa' },
-  { id: 'chute_leg_x', icon: '⬜', label: 'Rampa Bianca DX' },
-  { id: 'chute_leg_z', icon: '🌗', label: 'Canale Ombra SX' },
-  { id: 'fold_right', icon: '📐', label: 'Curva Punta DX' },
-  { id: 'fold_left', icon: '◣', label: 'Curva Scura SX' },
-  { id: 'wing_left', icon: '◤', label: 'Ala Punta 45° SX' },
-  { id: 'chute_funnel', icon: '⏬', label: 'Imbocco Scivolo' },
-  { id: 'pit_stepped', icon: '🪜', label: 'Gradoni Fossa' },
-  { id: 'goal_bevel', icon: '🏁', label: 'Punta GOAL' },
-  { id: 'pit', icon: '🕳️', label: 'Buca (con Bordo)' },
-  { id: 'subtiles_custom', icon: '🎛️', label: 'Sub-Griglia 3×3' }
+  { id: 'flat', icon: '⬛', labelKey: 'shape_flat' },
+  { id: 'chute_leg_x', icon: '⬜', labelKey: 'shape_chute_leg_x' },
+  { id: 'chute_leg_z', icon: '🌗', labelKey: 'shape_chute_leg_z' },
+  { id: 'fold_right', icon: '📐', labelKey: 'shape_fold_right' },
+  { id: 'fold_left', icon: '◣', labelKey: 'shape_fold_left' },
+  { id: 'wing_left', icon: '◤', labelKey: 'shape_wing_left' },
+  { id: 'chute_funnel', icon: '⏬', labelKey: 'shape_chute_funnel' },
+  { id: 'pit_stepped', icon: '🪜', labelKey: 'shape_pit_stepped' },
+  { id: 'goal_bevel', icon: '🏁', labelKey: 'shape_goal_bevel' },
+  { id: 'pit', icon: '🕳️', labelKey: 'shape_pit' },
+  { id: 'subtiles_custom', icon: '🎛️', labelKey: 'shape_subtiles_custom' }
 ];
 
 const ELEMENT_ITEMS = [
-  { id: 'none', icon: '✖️', label: 'Nessun Elem.' },
-  { id: 'tube_straight', icon: '➖', label: 'Tubo Dritto' },
-  { id: 'tube_corner', icon: '⌜', label: 'Tubo Angolo L' },
-  { id: 'tube_u', icon: '∏', label: 'Tubo a U' },
-  { id: 'cone_small', icon: '▲', label: 'Piramide Piccola' },
-  { id: 'cone_large', icon: '⛰️', label: 'Piramide Grande' },
-  { id: 'goal_flags', icon: '🚩', label: 'Bandiere GOAL' },
-  { id: 'marble_start', icon: '🔴', label: 'Biglia Start' }
+  { id: 'none', icon: '✖️', labelKey: 'elem_none' },
+  { id: 'tube_straight', icon: '➖', labelKey: 'elem_tube_straight' },
+  { id: 'tube_corner', icon: '⌜', labelKey: 'elem_tube_corner' },
+  { id: 'tube_u', icon: '∏', labelKey: 'elem_tube_u' },
+  { id: 'cone_small', icon: '▲', labelKey: 'elem_cone_small' },
+  { id: 'cone_large', icon: '⛰️', labelKey: 'elem_cone_large' },
+  { id: 'goal_flags', icon: '🚩', labelKey: 'elem_goal_flags' },
+  { id: 'marble_start', icon: '🔴', labelKey: 'elem_marble_start' }
 ];
 
 const DECAL_ITEMS = [
-  { id: 'none', icon: '✖️', label: 'Nessuna Decal' },
-  { id: 'arrow_wide_diag', icon: '↘️', label: 'Freccia Grande' },
-  { id: 'arrow_wide_ortho', icon: '⬇️', label: 'Freccia Dritta' },
-  { id: 'arrow_long_chevrons', icon: '🏹', label: 'Freccia 3 Punte' },
-  { id: 'arrow_shaft_only', icon: '┃', label: 'Asta Freccia' },
-  { id: 'pad_456', icon: '🔢', label: 'Griglia 4-5-6' },
-  { id: 'goal_banner', icon: '🔤', label: 'Scritta GOAL' }
+  { id: 'none', icon: '✖️', labelKey: 'decal_none' },
+  { id: 'arrow_wide_diag', icon: '↘️', labelKey: 'decal_arrow_wide_diag' },
+  { id: 'arrow_wide_ortho', icon: '⬇️', labelKey: 'decal_arrow_wide_ortho' },
+  { id: 'arrow_long_chevrons', icon: '🏹', labelKey: 'decal_arrow_long_chevrons' },
+  { id: 'arrow_shaft_only', icon: '┃', labelKey: 'decal_arrow_shaft_only' },
+  { id: 'pad_456', icon: '🔢', labelKey: 'decal_pad_456' },
+  { id: 'goal_banner', icon: '🔤', labelKey: 'decal_goal_banner' }
 ];
 
 function applyShapeIdToBlock(b, shapeId) {
@@ -569,7 +826,7 @@ function renderPalettes() {
       card.dataset.id = item.id;
       card.innerHTML = `
         <div class="palette-icon">${item.icon}</div>
-        <div class="palette-label">${item.label}</div>
+        <div class="palette-label">${t(item.labelKey)}</div>
       `;
       card.addEventListener('click', () => {
         state.brush[brushKey] = item.id;
@@ -625,13 +882,13 @@ function syncInspectorFromSelection() {
   const sel = state.selectedCell;
   const headerEl = document.getElementById('inspector-cell-title');
   if (!sel) {
-    headerEl.textContent = 'Nessun Blocco';
+    headerEl.textContent = t('inspector_no_block');
     return;
   }
 
   const key = `${sel.bx},${sel.bz}`;
   const b = state.blocks[key];
-  headerEl.textContent = `Blocco [${sel.bx}, ${sel.bz}] ${b && !b.isVoid ? '' : '(Vuoto)'}`;
+  headerEl.textContent = `${t('inspector_block')} [${sel.bx}, ${sel.bz}] ${b && !b.isVoid ? '' : t('inspector_empty_suffix')}`;
 
   if (b && !b.isVoid) {
     state.brush.shape = b.shape || 'flat';
@@ -735,7 +992,7 @@ function toggleSimulation() {
   state.isSimulating = !state.isSimulating;
   const btn = document.getElementById('btn-simulate');
   btn.classList.toggle('active', state.isSimulating);
-  btn.textContent = state.isSimulating ? '⏹ Ferma Biglia' : '▶ Test Biglia';
+  btn.textContent = state.isSimulating ? t('simulate_stop') : t('simulate_start');
 
   if (state.isSimulating) {
     setStaticMarblesVisible(false);
@@ -843,10 +1100,61 @@ function stepMarbleSimulation(dt) {
 }
 
 // ============================================================================
+// LANGUAGE SWITCHER & UI LOCALIZATION
+// ============================================================================
+function applyLanguage(lang) {
+  state.lang = lang === 'it' ? 'it' : 'en';
+  document.documentElement.lang = state.lang;
+  document.title = t('page_title');
+
+  // Update all elements with [data-i18n]
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    if (key) el.textContent = t(key);
+  });
+
+  // Update all elements with [data-i18n-title]
+  document.querySelectorAll('[data-i18n-title]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-title');
+    if (key) el.setAttribute('title', t(key));
+  });
+
+  // Update HUD rows (contains <kbd> markup)
+  const hudMouse = document.getElementById('hud-row-mouse');
+  if (hudMouse) hudMouse.innerHTML = t('hud_mouse_html');
+  const hudKeys = document.getElementById('hud-row-keys');
+  if (hudKeys) hudKeys.innerHTML = t('hud_keys_html');
+
+  // Update Simulate button label according to current state
+  const simBtn = document.getElementById('btn-simulate');
+  if (simBtn) {
+    simBtn.textContent = state.isSimulating ? t('simulate_stop') : t('simulate_start');
+  }
+
+  // Update Language toggle button
+  const langBtn = document.getElementById('btn-lang-toggle');
+  if (langBtn) {
+    langBtn.textContent = t('lang_toggle_btn');
+    langBtn.setAttribute('title', t('lang_toggle_title'));
+  }
+
+  // Re-render palettes, inspector header, and coordinates badge
+  renderPalettes();
+  syncInspectorFromSelection();
+  updateCoordsBadge();
+}
+
+// ============================================================================
 // EVENT LISTENERS & SHORTCUTS
 // ============================================================================
 function initUIEvents() {
-  renderPalettes();
+  applyLanguage(state.lang);
+
+  // Language Toggle Button
+  document.getElementById('btn-lang-toggle')?.addEventListener('click', () => {
+    const nextLang = state.lang === 'en' ? 'it' : 'en';
+    applyLanguage(nextLang);
+  });
 
   // Tool buttons
   document.querySelectorAll('[data-tool]').forEach((btn) => {
@@ -1033,7 +1341,7 @@ function initUIEvents() {
         modal.classList.remove('open');
       }
     } catch (err) {
-      alert('JSON non valido: ' + err.message);
+      alert(t('err_invalid_json') + err.message);
     }
   });
 

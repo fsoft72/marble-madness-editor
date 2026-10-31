@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Marble Madness 3D Level Editor (Blocchi 3×3)</title>
+  <title>Marble Madness 3D Level Editor (3×3 Blocks)</title>
   <link rel="stylesheet" href="./css/style.css" />
   <script type="importmap">
     {
@@ -20,61 +20,65 @@
     <header class="topbar">
       <div class="brand">
         <div class="brand-marble"></div>
-        <span>MARBLE MADNESS 3D EDITOR</span>
-        <span class="brand-badge">GRIGLIA BLOCCHI 3×3</span>
+        <span data-i18n="brand_title">MARBLE MADNESS 3D EDITOR</span>
+        <span class="brand-badge" data-i18n="brand_badge">3×3 BLOCK GRID</span>
       </div>
 
       <!-- Tool Switcher -->
       <div class="toolbar-group">
-        <button class="btn active" data-tool="select" title="Seleziona e modifica blocco (Tasto 1)">
-          🎯 Seleziona
+        <button class="btn active" data-tool="select" data-i18n="tool_select" data-i18n-title="tool_select_title" title="Select and edit block (Key 1)">
+          🎯 Select
         </button>
-        <button class="btn" data-tool="paint_block" title="Disegna blocchi 3x3 (Tasto 2)">
-          🧱 Pennello Blocco
+        <button class="btn" data-tool="paint_block" data-i18n="tool_paint_block" data-i18n-title="tool_paint_block_title" title="Paint 3×3 blocks (Key 2)">
+          🧱 Block Brush
         </button>
-        <button class="btn" data-tool="paint_element" title="Posiziona Elementi 3D come tubi, coni, bandiere (Tasto 3)">
-          🚧 Posiziona Elemento
+        <button class="btn" data-tool="paint_element" data-i18n="tool_paint_element" data-i18n-title="tool_paint_element_title" title="Place 3D Elements like tubes, cones, flags (Key 3)">
+          🚧 Place Element
         </button>
-        <button class="btn" data-tool="paint_decal" title="Applica Decal come frecce, GOAL, numeri 4-5-6 (Tasto 4)">
-          🎨 Posiziona Decal
+        <button class="btn" data-tool="paint_decal" data-i18n="tool_paint_decal" data-i18n-title="tool_paint_decal_title" title="Apply Decals like arrows, GOAL, numbers 4-5-6 (Key 4)">
+          🎨 Place Decal
         </button>
-        <button class="btn" data-tool="erase" title="Rimuovi blocco / Crea vuoto (Tasto 5)">
-          🧹 Gomma
+        <button class="btn" data-tool="erase" data-i18n="tool_erase" data-i18n-title="tool_erase_title" title="Remove block / Create void (Key 5)">
+          🧹 Eraser
         </button>
-        <button class="btn" data-tool="pick" title="Contagocce: copia proprietà dal blocco">
-          💧 Copia
+        <button class="btn" data-tool="pick" data-i18n="tool_pick" data-i18n-title="tool_pick_title" title="Eyedropper: copy properties from block">
+          💧 Copy
         </button>
       </div>
 
       <!-- Camera & Actions -->
       <div class="toolbar-group">
-        <button class="btn active" id="btn-cam-ortho" title="Telecamera Isometrica Ortografica fedele all'Arcade">
-          📐 Isometrica
+        <button class="btn active" id="btn-cam-ortho" data-i18n="cam_ortho" data-i18n-title="cam_ortho_title" title="Arcade-faithful Isometric Orthographic Camera">
+          📐 Isometric
         </button>
-        <button class="btn" id="btn-cam-persp" title="Telecamera Prospettica 3D">
-          🎥 Prospettiva
+        <button class="btn" id="btn-cam-persp" data-i18n="cam_persp" data-i18n-title="cam_persp_title" title="3D Perspective Camera">
+          🎥 Perspective
         </button>
-        <button class="btn" id="btn-cam-reset" title="Allinea vista all'inquadratura originale Arcade">
-          🎯 Inquadratura Arcade
+        <button class="btn" id="btn-cam-reset" data-i18n="cam_reset" data-i18n-title="cam_reset_title" title="Align view to original Arcade framing">
+          🎯 Arcade View
         </button>
-        <button class="btn" id="btn-toggle-grid" title="Mostra/Nascondi griglia base">
-          # Griglia
+        <button class="btn" id="btn-toggle-grid" data-i18n="toggle_grid" data-i18n-title="toggle_grid_title" title="Show/Hide base grid">
+          # Grid
         </button>
         <div class="divider-v"></div>
-        <button class="btn" id="btn-undo" title="Annulla (Ctrl+Z)">↩</button>
-        <button class="btn" id="btn-redo" title="Ripeti">↪</button>
+        <button class="btn" id="btn-undo" data-i18n-title="undo_title" title="Undo (Ctrl+Z)">↩</button>
+        <button class="btn" id="btn-redo" data-i18n-title="redo_title" title="Redo">↪</button>
         <div class="divider-v"></div>
-        <button class="btn btn-gold" id="btn-simulate" title="Lancia la biglia rossa lungo le pendenze (Frecce per guidare)">
-          ▶ Test Biglia
+        <button class="btn btn-gold" id="btn-simulate" data-i18n-title="simulate_title" title="Launch the red marble along the slopes (Arrow keys to steer)">
+          ▶ Test Marble
         </button>
-        <button class="btn" id="btn-load-preset" title="Ricarica la mappa completa Level 01 dall'immagine">
-          🗺️ Livello 1
+        <button class="btn" id="btn-load-preset" data-i18n="load_preset" data-i18n-title="load_preset_title" title="Reload full Level 01 map from reference image">
+          🗺️ Level 1
         </button>
-        <button class="btn" id="btn-clear-map" title="Svuota la mappa">
-          🗑️ Svuota
+        <button class="btn" id="btn-clear-map" data-i18n="clear_map" data-i18n-title="clear_map_title" title="Clear the map">
+          🗑️ Clear
         </button>
-        <button class="btn btn-primary" id="btn-export-json">
+        <button class="btn btn-primary" id="btn-export-json" data-i18n="export_json" data-i18n-title="export_json_title" title="Export / Import 3D Level (JSON)">
           💾 JSON
+        </button>
+        <div class="divider-v"></div>
+        <button class="btn btn-lang" id="btn-lang-toggle" title="Cambia lingua in Italiano">
+          🌐 EN
         </button>
       </div>
     </header>
@@ -83,24 +87,24 @@
     <aside class="sidebar-left">
       <div class="panel-section">
         <div class="section-header">
-          <span>1. Profilo Blocco 3×3</span>
-          <span>Pilastro ∞</span>
+          <span data-i18n="sec_shapes_title">1. 3×3 Block Profile</span>
+          <span data-i18n="sec_shapes_badge">Pillar ∞</span>
         </div>
         <div class="palette-grid" id="palette-shapes"></div>
       </div>
 
       <div class="panel-section">
         <div class="section-header">
-          <span>2. Elementi 3D sul Blocco</span>
-          <span>Click = Ruota</span>
+          <span data-i18n="sec_elements_title">2. 3D Elements on Block</span>
+          <span data-i18n="sec_click_rotate">Click = Rotate</span>
         </div>
         <div class="palette-grid" id="palette-elements"></div>
       </div>
 
       <div class="panel-section">
         <div class="section-header">
-          <span>3. Decals di Superficie</span>
-          <span>Click = Ruota</span>
+          <span data-i18n="sec_decals_title">3. Surface Decals</span>
+          <span data-i18n="sec_click_rotate">Click = Rotate</span>
         </div>
         <div class="palette-grid" id="palette-decals"></div>
       </div>
@@ -108,22 +112,22 @@
 
     <!-- CENTER 3D VIEWPORT -->
     <main class="viewport-container">
-      <div class="coords-badge" id="coords-badge">Blocco 3×3 [4, 4]</div>
+      <div class="coords-badge" id="coords-badge">3×3 Block [4, 4]</div>
       <img id="ref-overlay" src="./work/data/level01.png" alt="Reference Level 01" />
       <div id="canvas-container"></div>
 
       <div class="hud-overlay">
-        <div class="hud-row">
-          <kbd>Click SX</kbd> Seleziona / Applica &nbsp;•&nbsp;
-          <kbd>Click DX / Trascina</kbd> Ruota / Panoramica 3D &nbsp;•&nbsp;
-          <kbd>Rotella</kbd> Zoom
+        <div class="hud-row" id="hud-row-mouse">
+          <kbd>L-Click</kbd> Select / Apply &nbsp;•&nbsp;
+          <kbd>R-Click / Drag</kbd> Rotate / 3D Pan &nbsp;•&nbsp;
+          <kbd>Wheel</kbd> Zoom
         </div>
-        <div class="hud-row">
-          <kbd>W</kbd>/<kbd>S</kbd> Altezza Blocco &nbsp;•&nbsp;
-          <kbd>A</kbd>/<kbd>D</kbd> Pendenza &nbsp;•&nbsp;
-          <kbd>Q</kbd>/<kbd>E</kbd> Angolazione &nbsp;•&nbsp;
-          <kbd>R</kbd> Ruota 90° &nbsp;•&nbsp;
-          <kbd>Canc</kbd> Elimina
+        <div class="hud-row" id="hud-row-keys">
+          <kbd>W</kbd>/<kbd>S</kbd> Block Height &nbsp;•&nbsp;
+          <kbd>A</kbd>/<kbd>D</kbd> Slope &nbsp;•&nbsp;
+          <kbd>Q</kbd>/<kbd>E</kbd> Tilt &nbsp;•&nbsp;
+          <kbd>R</kbd> Rotate 90° &nbsp;•&nbsp;
+          <kbd>Del</kbd> Delete
         </div>
       </div>
     </main>
@@ -132,14 +136,14 @@
     <aside class="sidebar-right">
       <div class="panel-section">
         <div class="section-header">
-          <span id="inspector-cell-title">Blocco [4, 4]</span>
-          <span>3×3 Tile</span>
+          <span id="inspector-cell-title">Block [4, 4]</span>
+          <span data-i18n="inspector_tile_badge">3×3 Tile</span>
         </div>
 
         <!-- Elevation -->
         <div class="control-row">
           <div class="control-label">
-            <span>Altezza Base (Y)</span>
+            <span data-i18n="lbl_elevation">Base Height (Y)</span>
             <span class="control-val" id="val-elevation">12.0</span>
           </div>
           <div class="slider-wrap">
@@ -152,7 +156,7 @@
         <!-- Primary Slope (Pendenza) -->
         <div class="control-row">
           <div class="control-label">
-            <span>Pendenza (Slope Principale)</span>
+            <span data-i18n="lbl_slope">Slope (Primary)</span>
             <span class="control-val" id="val-slope">0.0</span>
           </div>
           <div class="slider-wrap">
@@ -165,7 +169,7 @@
         <!-- Cross Angle / Tilt (Angolazione Trasversale) -->
         <div class="control-row">
           <div class="control-label">
-            <span>Angolazione Laterale (Tilt)</span>
+            <span data-i18n="lbl_tilt">Lateral Tilt</span>
             <span class="control-val" id="val-tilt">0.0</span>
           </div>
           <div class="slider-wrap">
@@ -178,7 +182,7 @@
         <!-- Block Rotation -->
         <div class="control-row">
           <div class="control-label">
-            <span>Rotazione Blocco & Pendenza (Tasto R)</span>
+            <span data-i18n="lbl_block_rot">Block & Slope Rotation (Key R)</span>
           </div>
           <div class="rot-group rot-block-group">
             <button class="rot-btn active" data-rot="0">0°</button>
@@ -191,8 +195,8 @@
         <!-- 4-Corner Height Offsets (for seamless funnels & diagonal folds) -->
         <div class="control-row" style="margin-top:4px;">
           <div class="control-label">
-            <span>Vertici Angoli 3×3 [NW, NE, SW, SE]</span>
-            <button class="step-btn" id="btn-toggle-diag" title="Inverti diagonale di piega" style="width:auto; padding:0 6px; font-size:10px;">Diag ⟍/⟋</button>
+            <span data-i18n="lbl_corners">3×3 Corner Vertices [NW, NE, SW, SE]</span>
+            <button class="step-btn" id="btn-toggle-diag" data-i18n="btn_diag" data-i18n-title="btn_diag_title" title="Flip fold diagonal" style="width:auto; padding:0 6px; font-size:10px;">Diag ⟍/⟋</button>
           </div>
           <div class="rot-group">
             <div class="subtile-cell"><span>NW (0,0)</span><input class="corner-input" data-corner="0" type="number" step="0.2" value="0" /></div>
@@ -206,12 +210,12 @@
       <!-- Element & Decal Orientation -->
       <div class="panel-section">
         <div class="section-header">
-          <span>Orientamento Elementi & Decal</span>
+          <span data-i18n="sec_orient_title">Element & Decal Orientation</span>
         </div>
 
         <div class="control-row">
           <div class="control-label">
-            <span>Rotazione Elemento 3D (Tubi / Coni / Bandiere)</span>
+            <span data-i18n="lbl_elem_rot">3D Element Rotation (Tubes / Cones / Flags)</span>
           </div>
           <div class="rot-group rot-elem-group">
             <button class="rot-btn active" data-rot="0">0°</button>
@@ -223,7 +227,7 @@
 
         <div class="control-row">
           <div class="control-label">
-            <span>Rotazione Decal Superficie (Frecce / Numeri)</span>
+            <span data-i18n="lbl_decal_rot">Surface Decal Rotation (Arrows / Numbers)</span>
           </div>
           <div class="rot-group rot-decal-group">
             <button class="rot-btn active" data-rot="0">0°</button>
@@ -235,7 +239,7 @@
 
         <div class="control-row" style="margin-top:4px;">
           <div class="control-label">
-            <span>Colore Sfera Biglia (Semi-Trasparente)</span>
+            <span data-i18n="lbl_marble_color">Marble Sphere Color (Semi-Transparent)</span>
             <input type="color" id="inp-marble-color" value="#e61922" style="width:32px; height:20px; border:none; background:none; cursor:pointer;" />
           </div>
         </div>
@@ -244,8 +248,8 @@
       <!-- Custom 3x3 Sub-tiles Matrix (for stepped blocks) -->
       <div class="panel-section">
         <div class="section-header">
-          <span>Sub-Blocchi 3×3 (Offset ΔY)</span>
-          <span>Gradoni</span>
+          <span data-i18n="sec_subtiles_title">3×3 Sub-Blocks (Offset ΔY)</span>
+          <span data-i18n="sec_subtiles_badge">Steps</span>
         </div>
         <div class="subtile-matrix">
           <div class="subtile-cell"><span>[0,0]</span><input class="subtile-input" data-r="0" data-c="0" type="number" step="0.5" value="0" /></div>
@@ -263,11 +267,11 @@
       <!-- Reference Ghost Overlay -->
       <div class="panel-section">
         <div class="section-header">
-          <span>Confronto Immagine Originale</span>
+          <span data-i18n="sec_ref_title">Original Image Comparison</span>
         </div>
         <div class="control-row">
           <div class="control-label">
-            <span>Opacità Sovrapposizione (level01.png)</span>
+            <span data-i18n="lbl_ref_opacity">Overlay Opacity (level01.png)</span>
           </div>
           <input type="range" id="inp-ref-opacity" min="0" max="0.85" step="0.05" value="0" />
         </div>
@@ -279,12 +283,12 @@
   <div class="modal-backdrop" id="json-modal">
     <div class="modal-card">
       <div class="section-header">
-        <span>Esporta / Importa Livello 3D (JSON)</span>
+        <span data-i18n="modal_json_title">Export / Import 3D Level (JSON)</span>
       </div>
       <textarea id="json-textarea" spellcheck="false"></textarea>
       <div style="display:flex; justify-content:flex-end; gap:8px;">
-        <button class="btn" id="btn-close-modal">Chiudi</button>
-        <button class="btn btn-primary" id="btn-apply-json">Carica JSON nell'Editor</button>
+        <button class="btn" id="btn-close-modal" data-i18n="btn_close_modal">Close</button>
+        <button class="btn btn-primary" id="btn-apply-json" data-i18n="btn_apply_json">Load JSON into Editor</button>
       </div>
     </div>
   </div>
@@ -292,4 +296,3 @@
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>
-
