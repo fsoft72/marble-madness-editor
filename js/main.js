@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { BLOCK_SIZE, buildBlockMeshGroup, getBlockSurfaceY } from './geometry.js';
+import { BLOCK_SIZE, buildBlockMeshGroup, getBlockSurfaceY, createReflectiveMarble } from './geometry.js';
 import { createLevel01Preset } from './level01Preset.js';
 
 // ============================================================================
@@ -26,6 +26,7 @@ const state = {
     rotation: 0,
     element: 'tube_corner',
     elemRotation: 0,
+    marbleColor: '#e61922',
     decal: 'arrow_wide_diag',
     decalRotation: 0,
     subHeights: [
@@ -96,6 +97,14 @@ scene.add(sunLight);
 const fillLight = new THREE.DirectionalLight(0x90a8ff, 0.25);
 fillLight.position.set(25, 20, -20);
 scene.add(fillLight);
+
+// Real-time CubeCamera for the semi-transparent reflective marble
+const marbleCubeTarget = new THREE.WebGLCubeRenderTarget(128, {
+  generateMipmaps: true,
+  minFilter: THREE.LinearMipmapLinearFilter
+});
+const marbleCubeCamera = new THREE.CubeCamera(0.1, 180, marbleCubeTarget);
+scene.add(marbleCubeCamera);
 
 // Groups
 const worldGroup = new THREE.Group();
@@ -246,6 +255,7 @@ function rebuildSingleBlockMesh(bx, bz) {
   const block = state.blocks[key];
   if (!block || block.isVoid) return;
 
+  block._envMap = marbleCubeTarget.texture;
   const group = buildBlockMeshGroup(block);
   const { wx, wz } = gridToWorldCenter(bx, bz);
   group.position.set(wx, 0, wz);
@@ -370,7 +380,7 @@ function applyToolAtCell(bx, bz, isDrag = false) {
   block.isVoid = false;
 
   if (state.activeTool === 'paint_block') {
-    block.shape = state.brush.shape;
+    applyShapeIdToBlock(block, state.brush.shape);
     block.elevation = state.brush.elevation;
     block.slope = state.brush.slope;
     block.tilt = state.brush.tilt;
@@ -488,8 +498,11 @@ window.addEventListener('pointerup', () => {
 // ============================================================================
 const SHAPE_ITEMS = [
   { id: 'flat', icon: '⬛', label: 'Piano / Rampa' },
-  { id: 'fold_right', icon: '📐', label: 'Piega Diag. DX' },
-  { id: 'fold_left', icon: '📏', label: 'Piega Diag. SX' },
+  { id: 'chute_leg_x', icon: '⬜', label: 'Rampa Bianca DX' },
+  { id: 'chute_leg_z', icon: '🌗', label: 'Canale Ombra SX' },
+  { id: 'fold_right', icon: '📐', label: 'Curva Punta DX' },
+  { id: 'fold_left', icon: '◣', label: 'Curva Scura SX' },
+  { id: 'wing_left', icon: '◤', label: 'Ala Punta 45° SX' },
   { id: 'chute_funnel', icon: '⏬', label: 'Imbocco Scivolo' },
   { id: 'pit_stepped', icon: '🪜', label: 'Gradoni Fossa' },
   { id: 'goal_bevel', icon: '🏁', label: 'Punta GOAL' },
@@ -518,6 +531,34 @@ const DECAL_ITEMS = [
   { id: 'goal_banner', icon: '🔤', label: 'Scritta GOAL' }
 ];
 
+function applyShapeIdToBlock(b, shapeId) {
+  delete b.subShades;
+  delete b.cutout;
+  delete b.shadePreset;
+  if (shapeId === 'chute_leg_x') {
+    b.shape = 'flat';
+    b.shadePreset = 'chute_leg_x';
+  } else if (shapeId === 'chute_leg_z') {
+    b.shape = 'flat';
+    b.shadePreset = 'chute_leg_z';
+  } else if (shapeId === 'fold_right') {
+    b.shape = 'fold_right';
+    b.shadePreset = 'turn_right';
+  } else if (shapeId === 'fold_left') {
+    b.shape = 'fold_left';
+    b.shadePreset = 'turn_left_dark';
+  } else if (shapeId === 'wing_left') {
+    b.shape = 'flat';
+    b.cutout = 'wing_left';
+    b.shadePreset = 'wing_dark';
+  } else if (shapeId === 'chute_funnel') {
+    b.shape = 'chute_funnel';
+    b.shadePreset = 'funnel_center';
+  } else {
+    b.shape = shapeId;
+  }
+}
+
 function renderPalettes() {
   const bindPalette = (containerId, items, brushKey, autoTool) => {
     const el = document.getElementById(containerId);
@@ -537,9 +578,13 @@ function renderPalettes() {
           saveUndoSnapshot();
           const b = ensureBlockAt(state.selectedCell.bx, state.selectedCell.bz);
           b.isVoid = false;
-          b[brushKey] = item.id;
-          if (brushKey === 'shape' && item.id === 'subtiles_custom' && !b.subHeights) {
-            b.subHeights = JSON.parse(JSON.stringify(state.brush.subHeights));
+          if (brushKey === 'shape') {
+            applyShapeIdToBlock(b, item.id);
+            if (item.id === 'subtiles_custom' && !b.subHeights) {
+              b.subHeights = JSON.parse(JSON.stringify(state.brush.subHeights));
+            }
+          } else {
+            b[brushKey] = item.id;
           }
           rebuildSingleBlockMesh(state.selectedCell.bx, state.selectedCell.bz);
           syncInspectorFromSelection();
@@ -659,6 +704,7 @@ function applyInspectorChange(prop, value) {
     b[prop] = value;
     if (prop === 'slope' || prop === 'tilt' || prop === 'rotation') {
       delete b.corners;
+      delete b.vGrid;
     }
     rebuildSingleBlockMesh(bx, bz);
     updateCursorPose(selectCursor, bx, bz);
@@ -667,14 +713,23 @@ function applyInspectorChange(prop, value) {
 }
 
 // ============================================================================
-// PHYSICS MARBLE TEST SIMULATION
+// PHYSICS MARBLE TEST SIMULATION (Semi-transparent Reflective Sphere + 8-Point Square)
 // ============================================================================
-let simMarbleMesh = null;
+let simMarbleAssembly = null;
 const simState = {
   pos: new THREE.Vector3(),
   vel: new THREE.Vector3(),
+  rollAxis: new THREE.Vector3(1, 0, 0),
   keys: { up: false, down: false, left: false, right: false }
 };
+
+function setStaticMarblesVisible(vis) {
+  worldGroup.traverse((obj) => {
+    if (obj.name === 'reflectiveMarbleRoot') {
+      obj.visible = vis;
+    }
+  });
+}
 
 function toggleSimulation() {
   state.isSimulating = !state.isSimulating;
@@ -683,7 +738,8 @@ function toggleSimulation() {
   btn.textContent = state.isSimulating ? '⏹ Ferma Biglia' : '▶ Test Biglia';
 
   if (state.isSimulating) {
-    // Find start marble block or use selected block
+    setStaticMarblesVisible(false);
+
     let startBlock = null;
     for (const k in state.blocks) {
       if (state.blocks[k].element === 'marble_start') {
@@ -698,34 +754,36 @@ function toggleSimulation() {
     const bz = startBlock ? startBlock.bz : 1;
     const { wx, wz } = gridToWorldCenter(bx, bz);
     const y = startBlock ? getBlockSurfaceY(startBlock, 1.5, 1.5) : 14.0;
+    const mColor = startBlock?.marbleColor || state.brush.marbleColor || '#e61922';
 
-    if (!simMarbleMesh) {
-      simMarbleMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.48, 24, 24),
-        new THREE.MeshPhongMaterial({ color: 0xff2222, specular: 0xffffff, shininess: 90 })
-      );
-      simMarbleMesh.castShadow = true;
-      scene.add(simMarbleMesh);
+    if (!simMarbleAssembly) {
+      simMarbleAssembly = createReflectiveMarble(marbleCubeTarget.texture, mColor);
+      scene.add(simMarbleAssembly.root);
+    } else {
+      simMarbleAssembly.backMat.color.set(mColor);
+      simMarbleAssembly.frontMat.color.set(mColor);
     }
-    simMarbleMesh.visible = true;
-    simState.pos.set(wx, y + 0.5, wz);
+    simMarbleAssembly.root.visible = true;
+    simState.pos.set(wx, y + simMarbleAssembly.radius, wz);
     simState.vel.set(0, 0, 0);
-  } else if (simMarbleMesh) {
-    simMarbleMesh.visible = false;
+    simMarbleAssembly.root.position.copy(simState.pos);
+  } else {
+    if (simMarbleAssembly) {
+      simMarbleAssembly.root.visible = false;
+    }
+    setStaticMarblesVisible(true);
   }
 }
 
 function stepMarbleSimulation(dt) {
-  if (!state.isSimulating || !simMarbleMesh) return;
+  if (!state.isSimulating || !simMarbleAssembly) return;
 
-  // Player nudge forces (Arrow keys)
   const accel = 11.0;
   if (simState.keys.up) { simState.vel.x -= accel * dt; simState.vel.z -= accel * dt; }
   if (simState.keys.down) { simState.vel.x += accel * dt; simState.vel.z += accel * dt; }
   if (simState.keys.left) { simState.vel.x -= accel * dt; simState.vel.z += accel * dt; }
   if (simState.keys.right) { simState.vel.x += accel * dt; simState.vel.z -= accel * dt; }
 
-  // Find current cell and local (u, v)
   const offsetX = -((state.cols - 1) * BLOCK_SIZE) / 2;
   const offsetZ = -((state.rows - 1) * BLOCK_SIZE) / 2;
   const fx = (simState.pos.x - offsetX) / BLOCK_SIZE;
@@ -733,24 +791,21 @@ function stepMarbleSimulation(dt) {
   const bx = Math.round(fx);
   const bz = Math.round(fz);
 
+  const R = simMarbleAssembly.radius;
   const block = state.blocks[`${bx},${bz}`];
   if (block && !block.isVoid && block.shape !== 'pit') {
     const { wx, wz } = gridToWorldCenter(bx, bz);
     const u = Math.max(0, Math.min(3, simState.pos.x - wx + 1.5));
     const v = Math.max(0, Math.min(3, simState.pos.z - wz + 1.5));
 
-    const surfY = getBlockSurfaceY(block, u, v);
-    // Estimate local surface gradient via finite difference
     const eps = 0.08;
     const dydx = (getBlockSurfaceY(block, Math.min(3, u + eps), v) - getBlockSurfaceY(block, Math.max(0, u - eps), v)) / (2 * eps);
     const dydz = (getBlockSurfaceY(block, u, Math.min(3, v + eps)) - getBlockSurfaceY(block, u, Math.max(0, v - eps))) / (2 * eps);
 
-    // Gravity along slope
     const g = 18.0;
     simState.vel.x -= dydx * g * dt;
     simState.vel.z -= dydz * g * dt;
 
-    // Damping
     simState.vel.multiplyScalar(Math.pow(0.92, dt * 60));
 
     simState.pos.x += simState.vel.x * dt;
@@ -760,25 +815,31 @@ function stepMarbleSimulation(dt) {
     const newV = Math.max(0, Math.min(3, simState.pos.z - wz + 1.5));
     const newSurfY = getBlockSurfaceY(block, newU, newV);
 
-    if (simState.pos.y <= newSurfY + 0.55) {
-      simState.pos.y = newSurfY + 0.48;
+    if (simState.pos.y <= newSurfY + R + 0.08) {
+      simState.pos.y = newSurfY + R;
       simState.vel.y = 0;
     } else {
       simState.vel.y -= 28.0 * dt;
       simState.pos.y += simState.vel.y * dt;
     }
   } else {
-    // Freefall into pit / off cliff!
     simState.vel.y -= 32.0 * dt;
     simState.pos.addScaledVector(simState.vel, dt);
     if (simState.pos.y < -35) {
-      // Respawn at top
       toggleSimulation();
       toggleSimulation();
     }
   }
 
-  simMarbleMesh.position.copy(simState.pos);
+  simMarbleAssembly.root.position.copy(simState.pos);
+
+  // Rotate the internal 8-Point Square according to the exact rolling direction (v_x, v_z)!
+  const speedXZ = Math.hypot(simState.vel.x, simState.vel.z);
+  if (speedXZ > 0.01) {
+    simState.rollAxis.set(simState.vel.z / speedXZ, 0, -simState.vel.x / speedXZ);
+    const dAngle = (speedXZ * dt) / R;
+    simMarbleAssembly.innerGroup.rotateOnWorldAxis(simState.rollAxis, dAngle);
+  }
 }
 
 // ============================================================================
@@ -858,6 +919,7 @@ function initUIEvents() {
         vals[Number(el.dataset.corner)] = parseFloat(el.value) || 0;
       });
       b.corners = vals;
+      delete b.vGrid;
       rebuildSingleBlockMesh(state.selectedCell.bx, state.selectedCell.bz);
       syncInspectorFromSelection();
     });
@@ -892,6 +954,22 @@ function initUIEvents() {
     refImg.style.opacity = v;
   });
 
+  // Marble Color Picker
+  document.getElementById('inp-marble-color')?.addEventListener('input', (e) => {
+    const col = e.target.value;
+    state.brush.marbleColor = col;
+    if (simMarbleAssembly) {
+      simMarbleAssembly.backMat.color.set(col);
+      simMarbleAssembly.frontMat.color.set(col);
+    }
+    for (const k in state.blocks) {
+      if (state.blocks[k].element === 'marble_start') {
+        state.blocks[k].marbleColor = col;
+        rebuildSingleBlockMesh(state.blocks[k].bx, state.blocks[k].bz);
+      }
+    }
+  });
+
   // Undo / Redo
   document.getElementById('btn-undo').addEventListener('click', undo);
   document.getElementById('btn-redo').addEventListener('click', redo);
@@ -917,7 +995,10 @@ function initUIEvents() {
   });
 
   // Simulate Marble
-  document.getElementById('btn-simulate').addEventListener('click', toggleSimulation);
+  document.getElementById('btn-simulate').addEventListener('click', (e) => {
+    e.currentTarget.blur();
+    toggleSimulation();
+  });
 
   // JSON Export / Import Modal
   const modal = document.getElementById('json-modal');
@@ -960,11 +1041,13 @@ function initUIEvents() {
   window.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-    if (state.isSimulating) {
+    if (state.isSimulating && e.key.startsWith('Arrow')) {
+      e.preventDefault();
       if (e.key === 'ArrowUp') simState.keys.up = true;
       if (e.key === 'ArrowDown') simState.keys.down = true;
       if (e.key === 'ArrowLeft') simState.keys.left = true;
       if (e.key === 'ArrowRight') simState.keys.right = true;
+      return;
     }
 
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
@@ -1050,6 +1133,52 @@ setArcadeIsometricView();
 syncInspectorFromSelection();
 
 let lastTime = performance.now();
+let frameCounter = 0;
+const tempWorldPos = new THREE.Vector3();
+const staticRollAxis = new THREE.Vector3();
+
+function updateMarbleReflectionsAndInnerSquare(dt) {
+  frameCounter++;
+
+  if (state.isSimulating && simMarbleAssembly && simMarbleAssembly.root.visible) {
+    // Update real-time CubeCamera reflection at the simulation marble's position
+    if (frameCounter % 2 === 0) {
+      simMarbleAssembly.root.visible = false;
+      marbleCubeCamera.position.copy(simState.pos);
+      marbleCubeCamera.update(renderer, scene);
+      simMarbleAssembly.root.visible = true;
+    }
+    return;
+  }
+
+  // In Editor Mode: rotate the 8-point square inside any static `marble_start` blocks
+  // according to the block's elemRotation direction, and update the CubeCamera reflection!
+  let firstMarbleRoot = null;
+  worldGroup.traverse((obj) => {
+    if (obj.name === 'reflectiveMarbleRoot') {
+      if (!firstMarbleRoot) firstMarbleRoot = obj;
+      const inner = obj.getObjectByName('innerEightPointSquare');
+      if (inner) {
+        // Compute rolling axis from parent block's elemRotation (0, 90, 180, 270)
+        const cellData = obj.parent?.parent?.userData;
+        const blk = cellData ? state.blocks[`${cellData.bx},${cellData.bz}`] : null;
+        const dirRad = ((Number(blk?.elemRotation ?? 0)) * Math.PI) / 180;
+        // Direction vector (sin(dirRad), 0, cos(dirRad)) -> Roll axis = Up x Dir = (cos(dirRad), 0, -sin(dirRad))
+        staticRollAxis.set(Math.cos(dirRad), 0, -Math.sin(dirRad)).normalize();
+        inner.rotateOnWorldAxis(staticRollAxis, dt * 2.4);
+      }
+    }
+  });
+
+  if (firstMarbleRoot && frameCounter % 4 === 0) {
+    firstMarbleRoot.getWorldPosition(tempWorldPos);
+    firstMarbleRoot.visible = false;
+    marbleCubeCamera.position.copy(tempWorldPos);
+    marbleCubeCamera.update(renderer, scene);
+    firstMarbleRoot.visible = true;
+  }
+}
+
 function animate(now) {
   requestAnimationFrame(animate);
   const dt = Math.min(0.05, (now - lastTime) / 1000);
@@ -1057,6 +1186,7 @@ function animate(now) {
 
   controls.update();
   stepMarbleSimulation(dt);
+  updateMarbleReflectionsAndInnerSquare(dt);
   renderer.render(scene, activeCamera);
 }
 requestAnimationFrame(animate);
