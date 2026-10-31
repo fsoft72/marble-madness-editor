@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marble Madness 3D Level Editor (Blocchi 3×3)</title>
+  <link rel="stylesheet" href="./css/style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-marble"></div>
+        <span>MARBLE MADNESS 3D EDITOR</span>
+        <span class="brand-badge">GRIGLIA BLOCCHI 3×3</span>
+      </div>
+
+      <!-- Tool Switcher -->
+      <div class="toolbar-group">
+        <button class="btn active" data-tool="select" title="Seleziona e modifica blocco (Tasto 1)">
+          🎯 Seleziona
+        </button>
+        <button class="btn" data-tool="paint_block" title="Disegna blocchi 3x3 (Tasto 2)">
+          🧱 Pennello Blocco
+        </button>
+        <button class="btn" data-tool="paint_element" title="Posiziona Elementi 3D come tubi, coni, bandiere (Tasto 3)">
+          🚧 Posiziona Elemento
+        </button>
+        <button class="btn" data-tool="paint_decal" title="Applica Decal come frecce, GOAL, numeri 4-5-6 (Tasto 4)">
+          🎨 Posiziona Decal
+        </button>
+        <button class="btn" data-tool="erase" title="Rimuovi blocco / Crea vuoto (Tasto 5)">
+          🧹 Gomma
+        </button>
+        <button class="btn" data-tool="pick" title="Contagocce: copia proprietà dal blocco">
+          💧 Copia
+        </button>
+      </div>
+
+      <!-- Camera & Actions -->
+      <div class="toolbar-group">
+        <button class="btn active" id="btn-cam-ortho" title="Telecamera Isometrica Ortografica fedele all'Arcade">
+          📐 Isometrica
+        </button>
+        <button class="btn" id="btn-cam-persp" title="Telecamera Prospettica 3D">
+          🎥 Prospettiva
+        </button>
+        <button class="btn" id="btn-cam-reset" title="Allinea vista all'inquadratura originale Arcade">
+          🎯 Inquadratura Arcade
+        </button>
+        <button class="btn" id="btn-toggle-grid" title="Mostra/Nascondi griglia base">
+          # Griglia
+        </button>
+        <div class="divider-v"></div>
+        <button class="btn" id="btn-undo" title="Annulla (Ctrl+Z)">↩</button>
+        <button class="btn" id="btn-redo" title="Ripeti">↪</button>
+        <div class="divider-v"></div>
+        <button class="btn btn-gold" id="btn-simulate" title="Lancia la biglia rossa lungo le pendenze (Frecce per guidare)">
+          ▶ Test Biglia
+        </button>
+        <button class="btn" id="btn-load-preset" title="Ricarica la mappa completa Level 01 dall'immagine">
+          🗺️ Livello 1
+        </button>
+        <button class="btn" id="btn-clear-map" title="Svuota la mappa">
+          🗑️ Svuota
+        </button>
+        <button class="btn btn-primary" id="btn-export-json">
+          💾 JSON
+        </button>
+      </div>
+    </header>
+
+    <!-- LEFT SIDEBAR: PALETTES (SHAPES, 3D ELEMENTS, DECALS) -->
+    <aside class="sidebar-left">
+      <div class="panel-section">
+        <div class="section-header">
+          <span>1. Profilo Blocco 3×3</span>
+          <span>Pilastro ∞</span>
+        </div>
+        <div class="palette-grid" id="palette-shapes"></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="section-header">
+          <span>2. Elementi 3D sul Blocco</span>
+          <span>Click = Ruota</span>
+        </div>
+        <div class="palette-grid" id="palette-elements"></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="section-header">
+          <span>3. Decals di Superficie</span>
+          <span>Click = Ruota</span>
+        </div>
+        <div class="palette-grid" id="palette-decals"></div>
+      </div>
+    </aside>
+
+    <!-- CENTER 3D VIEWPORT -->
+    <main class="viewport-container">
+      <div class="coords-badge" id="coords-badge">Blocco 3×3 [4, 4]</div>
+      <img id="ref-overlay" src="./work/data/level01.png" alt="Reference Level 01" />
+      <div id="canvas-container"></div>
+
+      <div class="hud-overlay">
+        <div class="hud-row">
+          <kbd>Click SX</kbd> Seleziona / Applica &nbsp;•&nbsp;
+          <kbd>Click DX / Trascina</kbd> Ruota / Panoramica 3D &nbsp;•&nbsp;
+          <kbd>Rotella</kbd> Zoom
+        </div>
+        <div class="hud-row">
+          <kbd>W</kbd>/<kbd>S</kbd> Altezza Blocco &nbsp;•&nbsp;
+          <kbd>A</kbd>/<kbd>D</kbd> Pendenza &nbsp;•&nbsp;
+          <kbd>Q</kbd>/<kbd>E</kbd> Angolazione &nbsp;•&nbsp;
+          <kbd>R</kbd> Ruota 90° &nbsp;•&nbsp;
+          <kbd>Canc</kbd> Elimina
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT SIDEBAR: BLOCK INSPECTOR -->
+    <aside class="sidebar-right">
+      <div class="panel-section">
+        <div class="section-header">
+          <span id="inspector-cell-title">Blocco [4, 4]</span>
+          <span>3×3 Tile</span>
+        </div>
+
+        <!-- Elevation -->
+        <div class="control-row">
+          <div class="control-label">
+            <span>Altezza Base (Y)</span>
+            <span class="control-val" id="val-elevation">12.0</span>
+          </div>
+          <div class="slider-wrap">
+            <button class="step-btn" id="btn-elev-minus">-</button>
+            <input type="range" id="inp-elevation" min="-4" max="24" step="0.25" value="12" />
+            <button class="step-btn" id="btn-elev-plus">+</button>
+          </div>
+        </div>
+
+        <!-- Primary Slope (Pendenza) -->
+        <div class="control-row">
+          <div class="control-label">
+            <span>Pendenza (Slope Principale)</span>
+            <span class="control-val" id="val-slope">0.0</span>
+          </div>
+          <div class="slider-wrap">
+            <button class="step-btn" id="btn-slope-minus">-</button>
+            <input type="range" id="inp-slope" min="-4.0" max="4.0" step="0.1" value="0" />
+            <button class="step-btn" id="btn-slope-plus">+</button>
+          </div>
+        </div>
+
+        <!-- Cross Angle / Tilt (Angolazione Trasversale) -->
+        <div class="control-row">
+          <div class="control-label">
+            <span>Angolazione Laterale (Tilt)</span>
+            <span class="control-val" id="val-tilt">0.0</span>
+          </div>
+          <div class="slider-wrap">
+            <button class="step-btn" id="btn-tilt-minus">-</button>
+            <input type="range" id="inp-tilt" min="-4.0" max="4.0" step="0.1" value="0" />
+            <button class="step-btn" id="btn-tilt-plus">+</button>
+          </div>
+        </div>
+
+        <!-- Block Rotation -->
+        <div class="control-row">
+          <div class="control-label">
+            <span>Rotazione Blocco & Pendenza (Tasto R)</span>
+          </div>
+          <div class="rot-group rot-block-group">
+            <button class="rot-btn active" data-rot="0">0°</button>
+            <button class="rot-btn" data-rot="90">90°</button>
+            <button class="rot-btn" data-rot="180">180°</button>
+            <button class="rot-btn" data-rot="270">270°</button>
+          </div>
+        </div>
+
+        <!-- 4-Corner Height Offsets (for seamless funnels & diagonal folds) -->
+        <div class="control-row" style="margin-top:4px;">
+          <div class="control-label">
+            <span>Vertici Angoli 3×3 [NW, NE, SW, SE]</span>
+            <button class="step-btn" id="btn-toggle-diag" title="Inverti diagonale di piega" style="width:auto; padding:0 6px; font-size:10px;">Diag ⟍/⟋</button>
+          </div>
+          <div class="rot-group">
+            <div class="subtile-cell"><span>NW (0,0)</span><input class="corner-input" data-corner="0" type="number" step="0.2" value="0" /></div>
+            <div class="subtile-cell"><span>NE (3,0)</span><input class="corner-input" data-corner="1" type="number" step="0.2" value="0" /></div>
+            <div class="subtile-cell"><span>SW (0,3)</span><input class="corner-input" data-corner="2" type="number" step="0.2" value="0" /></div>
+            <div class="subtile-cell"><span>SE (3,3)</span><input class="corner-input" data-corner="3" type="number" step="0.2" value="0" /></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Element & Decal Orientation -->
+      <div class="panel-section">
+        <div class="section-header">
+          <span>Orientamento Elementi & Decal</span>
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Rotazione Elemento 3D (Tubi / Coni / Bandiere)</span>
+          </div>
+          <div class="rot-group rot-elem-group">
+            <button class="rot-btn active" data-rot="0">0°</button>
+            <button class="rot-btn" data-rot="90">90°</button>
+            <button class="rot-btn" data-rot="180">180°</button>
+            <button class="rot-btn" data-rot="270">270°</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <div class="control-label">
+            <span>Rotazione Decal Superficie (Frecce / Numeri)</span>
+          </div>
+          <div class="rot-group rot-decal-group">
+            <button class="rot-btn active" data-rot="0">0°</button>
+            <button class="rot-btn" data-rot="90">90°</button>
+            <button class="rot-btn" data-rot="180">180°</button>
+            <button class="rot-btn" data-rot="270">270°</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom 3x3 Sub-tiles Matrix (for stepped blocks) -->
+      <div class="panel-section">
+        <div class="section-header">
+          <span>Sub-Blocchi 3×3 (Offset ΔY)</span>
+          <span>Gradoni</span>
+        </div>
+        <div class="subtile-matrix">
+          <div class="subtile-cell"><span>[0,0]</span><input class="subtile-input" data-r="0" data-c="0" type="number" step="0.5" value="0" /></div>
+          <div class="subtile-cell"><span>[0,1]</span><input class="subtile-input" data-r="0" data-c="1" type="number" step="0.5" value="0" /></div>
+          <div class="subtile-cell"><span>[0,2]</span><input class="subtile-input" data-r="0" data-c="2" type="number" step="0.5" value="0" /></div>
+          <div class="subtile-cell"><span>[1,0]</span><input class="subtile-input" data-r="1" data-c="0" type="number" step="0.5" value="0" /></div>
+          <div class="subtile-cell"><span>[1,1]</span><input class="subtile-input" data-r="1" data-c="1" type="number" step="0.5" value="0" /></div>
+          <div class="subtile-cell"><span>[1,2]</span><input class="subtile-input" data-r="1" data-c="2" type="number" step="0.5" value="0" /></div>
+          <div class="subtile-cell"><span>[2,0]</span><input class="subtile-input" data-r="2" data-c="0" type="number" step="0.5" value="0" /></div>
+          <div class="subtile-cell"><span>[2,1]</span><input class="subtile-input" data-r="2" data-c="1" type="number" step="0.5" value="0" /></div>
+          <div class="subtile-cell"><span>[2,2]</span><input class="subtile-input" data-r="2" data-c="2" type="number" step="0.5" value="0" /></div>
+        </div>
+      </div>
+
+      <!-- Reference Ghost Overlay -->
+      <div class="panel-section">
+        <div class="section-header">
+          <span>Confronto Immagine Originale</span>
+        </div>
+        <div class="control-row">
+          <div class="control-label">
+            <span>Opacità Sovrapposizione (level01.png)</span>
+          </div>
+          <input type="range" id="inp-ref-opacity" min="0" max="0.85" step="0.05" value="0" />
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- JSON EXPORT / IMPORT MODAL -->
+  <div class="modal-backdrop" id="json-modal">
+    <div class="modal-card">
+      <div class="section-header">
+        <span>Esporta / Importa Livello 3D (JSON)</span>
+      </div>
+      <textarea id="json-textarea" spellcheck="false"></textarea>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn" id="btn-close-modal">Chiudi</button>
+        <button class="btn btn-primary" id="btn-apply-json">Carica JSON nell'Editor</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
+
